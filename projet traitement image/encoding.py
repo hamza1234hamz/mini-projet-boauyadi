@@ -29,8 +29,11 @@ class Encoder:
             # Vérifier si les premiers octets correspondent à l'en-tête ULBMP
             return header == b'ULBMP\x01'
     
-    def create_from_pixels(width: int, height: int, pixels: List[Pixel]) -> 'Encoder':
-        return Encoder(width, height, pixels)
+    @classmethod
+    def create_from_pixels(cls, pixels: List[Pixel]) -> 'Encoder':
+        width = height = int(len(pixels) ** 0.5)
+        img = Image(width, height, pixels)
+        return cls(img)
 
 # encoding.py
 class Decoder:

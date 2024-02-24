@@ -28,34 +28,45 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def load_image(self):
         # Ouvrir une boîte de dialogue de sélection de fichier
-        filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Select Image", "", "Images (*.bmp *.png *.jpg)")
+       # filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Select Image", "", "ULBMP Files (*.ulbmp)")
+        filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Select Image", "", "All Files (*)")
 
-        # Vérifier si le fichier est valide
         if filename:
             if not Encoder.is_ulbmp(filename):
                 # Afficher un message d'erreur si le format n'est pas ULBMP
                 QtWidgets.QMessageBox.critical(self, "Error", "Missing format ULBMP")
                 return
 
-            try:
-                encoder = Encoder.load_from(filename)
-            except Exception as e:
-                # Afficher une boîte de dialogue d'erreur
-                QtWidgets.QMessageBox.critical(self, "Error", str(e))
-                return
+            
 
-            # Si le fichier est valide, afficher l'image
-            image = encoder.get_image()
-            pixmap = QtGui.QPixmap.fromImage(image)
-            scene = QtWidgets.QGraphicsScene()
-            scene.addPixmap(pixmap)
-            self.canvas.setScene(scene)
+        # Vérifier si le fichier est valide
+        try:
+            image = Decoder.load_from(filename)
+        except Exception as e:
+            # Afficher une boîte de dialogue d'erreur
+            error_message = QtWidgets.QErrorMessage()
+            error_message.showMessage(str(e))
+            return
 
-            # Redimensionner la fenêtre
-            self.resize(image.width(), image.height())
+        # Convertir l'objet image en pixmap
+        pixmap = QtGui.QPixmap.fromImage(image)
 
-            # Activer le bouton de sauvegarde
-            self.save_image_button.setEnabled(True)
+        # Créer un label pour afficher l'image
+        label = QtWidgets.QLabel()
+        label.setPixmap(pixmap)
+
+        # Créer un widget de défilement pour afficher l'image
+        scroll_area = QtWidgets.QScrollArea()
+        scroll_area.setWidget(label)
+
+        # Ajouter le widget de défilement à la mise en page principale
+        self.main_layout.addWidget(scroll_area)
+
+        # Redimensionner la fenêtre
+        self.resize(image.width(), image.height())
+
+        # Activer le bouton de sauvegarde
+        self.save_image_button.setEnabled(True)
 
     def save_image(self):
         # Fonction de sauvegarde de l'image
