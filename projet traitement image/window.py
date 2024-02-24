@@ -32,45 +32,53 @@ class MainWindow(QtWidgets.QMainWindow):
         filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Select Image", "", "All Files (*)")
 
         if filename:
+            # Vérifier si le fichier est au format ULBMP
             if not Encoder.is_ulbmp(filename):
-                # Afficher un message d'erreur si le format n'est pas ULBMP
                 QtWidgets.QMessageBox.critical(self, "Error", "Missing format ULBMP")
                 return
 
-            
+            try:
+                # Charger l'image à partir du fichier ULBMP
+                image = Decoder.load_from(filename)
+            except Exception as e:
+                QtWidgets.QMessageBox.critical(self, "Error", str(e))
+                return
 
-        # Vérifier si le fichier est valide
-        try:
-            image = Decoder.load_from(filename)
-        except Exception as e:
-            # Afficher une boîte de dialogue d'erreur
-            error_message = QtWidgets.QErrorMessage()
-            error_message.showMessage(str(e))
-            return
+            # Convertir l'objet image en pixmap
+            pixmap = QtGui.QPixmap(image.width(), image.height())
+            for x in range(image.width()):
+                for y in range(image.height()):
+                    pixel = image[x, y]
+                    pixmap.setPixelColor(x, y, QtGui.QColor(pixel.red, pixel.green, pixel.blue))
 
-        # Convertir l'objet image en pixmap
-        pixmap = QtGui.QPixmap.fromImage(image)
+            # Créer un label pour afficher l'image
+            label = QtWidgets.QLabel()
+            label.setPixmap(pixmap)
 
-        # Créer un label pour afficher l'image
-        label = QtWidgets.QLabel()
-        label.setPixmap(pixmap)
+            # Créer un widget de défilement pour afficher l'image
+            scroll_area = QtWidgets.QScrollArea()
+            scroll_area.setWidget(label)
 
-        # Créer un widget de défilement pour afficher l'image
-        scroll_area = QtWidgets.QScrollArea()
-        scroll_area.setWidget(label)
+            # Ajouter le widget de défilement à la mise en page principale
+            self.main_layout.addWidget(scroll_area)
 
-        # Ajouter le widget de défilement à la mise en page principale
-        self.main_layout.addWidget(scroll_area)
+            # Redimensionner la fenêtre
+            self.resize(image.width(), image.height())
 
-        # Redimensionner la fenêtre
-        self.resize(image.width(), image.height())
+            # Activer le bouton de sauvegarde
+            self.save_image_button.setEnabled(True)
 
-        # Activer le bouton de sauvegarde
-        self.save_image_button.setEnabled(True)
 
     def save_image(self):
-        # Fonction de sauvegarde de l'image
-        pass
+        # Demander à l'utilisateur la version du format ULBMP
+        version, ok = QtWidgets.QInputDialog.getInt(self, "Save Image", "Enter ULBMP version (1 or 2):", 1, 1, 2)
+        if ok:
+            # Demander à l'utilisateur le nom du fichier de sauvegarde
+            filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Image", "", "ULBMP Files (*.ulbmp)")
+            if filename:
+                # Enregistrer l'image avec la version spécifiée du format ULBMP
+                encoder = Encoder(self.image, version)
+                encoder.save_to(filename)
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])

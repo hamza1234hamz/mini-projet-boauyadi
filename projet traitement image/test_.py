@@ -153,9 +153,9 @@ def test_load_from_incomplete():
 
 
 
-""" 
-#################### PHASE 3 ####################
 
+#################### PHASE 3 ####################
+"""
 def test_encode_line_100_blacks():
     from pixel import Pixel
     from image import Image
@@ -163,6 +163,22 @@ def test_encode_line_100_blacks():
     BLACK = Pixel(0, 0, 0)
     img = Image(100, 1, [BLACK]*100)
     assert _image_as_bytes(img, 2) == expected
+"""
+def test_encode_line_100_blacks():
+    from pixel import Pixel
+    from image import Image
+    print("Avant l'appel de la fonction 100")
+    #expected_bytes = bytes.fromhex('554c424d50020c006400010065000000')
+
+    expected_bytes = bytes.fromhex('554c424d50020c006400010064000000')
+    BLACK = Pixel(0, 0, 0)
+    img = Image(100, 1, [BLACK]*100)
+    result_bytes = _image_as_bytes(img, 2)
+    expected_hex = ''.join(format(byte, '02x') for byte in expected_bytes)
+    result_hex = ''.join(format(byte, '02x') for byte in result_bytes)
+    print("Expected hex:", expected_hex)
+    print("Result hex:", result_hex)
+    assert result_hex == expected_hex
 
 def test_encode_line_300_blacks():
     from pixel import Pixel
@@ -176,6 +192,9 @@ def test_encode_squares_ulbmp2():
     expected = bytes.fromhex('554c424d50020c00020002000100000001ffffff0100000001ffffff')
     assert _image_as_bytes(_get_squares_img(), 2) == expected
 
+
+
+""" 
 #################### PHASE 4 ####################
 
 def test_load_palette():

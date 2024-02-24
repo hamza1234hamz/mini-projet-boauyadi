@@ -18,4 +18,4 @@ def create_ulbmp(filename: str):
     encoder.save_to(filename)
 
 if __name__ == "__main__":
-    create_ulbmp("test_image.ulbmp")
+    create_ulbmp("test_image.png")
