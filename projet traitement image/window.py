@@ -1,10 +1,12 @@
+
 from PySide6 import QtCore, QtGui, QtWidgets
 from encoding import Decoder, Encoder
+
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
-
+        
         # Initialisation des widgets
         self.load_image_button = QtWidgets.QPushButton("Load Image")
         self.canvas = QtWidgets.QGraphicsView()
@@ -14,8 +16,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # Mise en page
         self.main_layout = QtWidgets.QVBoxLayout()
         self.main_layout.addWidget(self.load_image_button)
-        self.main_layout.addWidget(self.canvas)
         self.main_layout.addWidget(self.save_image_button)
+        self.main_layout.addWidget(self.canvas)
 
         # Définition de la fenêtre principale
         self.central_widget = QtWidgets.QWidget()
@@ -30,7 +32,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Ouvrir une boîte de dialogue de sélection de fichier
        # filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Select Image", "", "ULBMP Files (*.ulbmp)")
         filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Select Image", "", "All Files (*)")
-
+        #filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Select Image", "", "Images (*.png *.xpm *.jpg *.bmp *.ulbmp)")
         if filename:
             # Vérifier si le fichier est au format ULBMP
             if not Encoder.is_ulbmp(filename):
@@ -45,9 +47,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 return
 
             # Convertir l'objet image en pixmap
-            pixmap = QtGui.QPixmap(image.width(), image.height())
-            for x in range(image.width()):
-                for y in range(image.height()):
+            pixmap = QtGui.QPixmap(image.width, image.height)
+            for x in range(image.width):
+                for y in range(image.height):
                     pixel = image[x, y]
                     pixmap.setPixelColor(x, y, QtGui.QColor(pixel.red, pixel.green, pixel.blue))
 
@@ -79,7 +81,23 @@ class MainWindow(QtWidgets.QMainWindow):
                 # Enregistrer l'image avec la version spécifiée du format ULBMP
                 encoder = Encoder(self.image, version)
                 encoder.save_to(filename)
+'''
+    def load_image(self):
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open Image", "", "Images (*.ulbmp)")
+        if fileName:
+            image = Decoder.load_from(fileName)
+            # Convert the Image object to a QPixmap
+            self.pixmap = self.image_to_pixmap(image)
+            self.imageLabel.setPixmap(self.pixmap)
 
+    def save_image(self):
+        #fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Image", "", "Images (*.png *.xpm *.jpg *.bmp *.ulbmp)")
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Select Image", "", "All Files (*)")
+        if fileName:
+            # Convert the QPixmap to an Image object
+            image = self.pixmap_to_image(self.pixmap)
+            Encoder(image, self.ulbmp_version).save_to(fileName)
+'''
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
     window = MainWindow()

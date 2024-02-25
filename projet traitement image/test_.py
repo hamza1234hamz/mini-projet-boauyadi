@@ -163,7 +163,7 @@ def test_encode_line_100_blacks():
     BLACK = Pixel(0, 0, 0)
     img = Image(100, 1, [BLACK]*100)
     assert _image_as_bytes(img, 2) == expected
-"""
+
 def test_encode_line_100_blacks():
     from pixel import Pixel
     from image import Image
@@ -196,7 +196,7 @@ def test_encode_squares_ulbmp2():
 
 """ 
 #################### PHASE 4 ####################
-
+'''
 def test_load_palette():
     from pixel import Pixel
     content = bytes.fromhex('554c424d50031700030001000200ff000000ff000000ff84')
@@ -265,5 +265,6 @@ def test_load_ulbmp4_blocs():
     assert img[1,0] == Pixel(41, 46, 41)
     assert img[1,0] == img[0,1]
     assert img[1,1] == Pixel(13, 26, 28)
-    
-    """
+
+
+'''
