@@ -29,3 +29,8 @@ class Image:
         if self.width != other.width or self.height != other.height:
             return False
         return all(pix1 == pix2 for pix1, pix2 in zip(self.pixels, other.pixels))
+
+
+
+# b'ULBMP\x01\x0c\x00\x04\x00\x04\x00'
+# b'ULBMP\x01\x0c\x00\x04\x00\x04\x00'

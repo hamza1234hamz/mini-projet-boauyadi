@@ -22,10 +22,14 @@ class Encoder:
         header = b'ULBMP\x01' + \
                  header_length.to_bytes(2, 'little') + \
                  self._img.width.to_bytes(2, 'little') + self._img.height.to_bytes(2, 'little')
+        #header = b'ULBMP\x01\x0c\x00' + self._img.width.to_bytes(2, 'little') + self._img.height.to_bytes(2, 'little')
+        print("header ",header)
         with open(path, 'wb') as f:
             f.write(header)
             for pixel in self._img.pixels:
-                f.write(bytes(pixel))
+                for rgb in pixel:
+                    f.write(bytes([rgb.red, rgb.green, rgb.blue]))
+               
 
     '''def _save_ulbmp_v2(self, path: str):
         header = b'ULBMP\x02' + \
@@ -56,19 +60,23 @@ class Encoder:
     
     @classmethod
     def create_from_pixels(cls, pixels: List[Pixel], ulbmp_version: int = 1) -> 'Encoder':
-        width = height = int(len(pixels) ** 0.5)
+        #width = height = int(len(pixels) ** 0.5)
+        width = len(pixels)
+        height = len(pixels[0])
+        print("width ", width)
+        print("height  ",height)
         img = Image(width, height, pixels)
         return cls(img, ulbmp_version)
 
-# encoding.py
+
 class Decoder:
     @staticmethod
     def load_from(path: str) -> Image:
         with open(path, 'rb') as f:
             header = f.read(12) 
             print("Header:", header)
-            width = int.from_bytes(header[6:8], 'little')
-            height = int.from_bytes(header[8:10], 'little')
+            width = int.from_bytes(header[8:10], 'little')
+            height = int.from_bytes(header[10:], 'little')   # b'ULBMP\x01\x0c\x00\x04\x00\x04\x00'
             print("Width:", width)
             print("Height:", height)
             pixels = []

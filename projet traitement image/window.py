@@ -1,5 +1,5 @@
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets 
 from encoding import Decoder, Encoder
 
 
@@ -41,6 +41,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             try:
                 # Charger l'image à partir du fichier ULBMP
+                print("window load image try")
                 image = Decoder.load_from(filename)
             except Exception as e:
                 QtWidgets.QMessageBox.critical(self, "Error", str(e))
@@ -48,10 +49,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
             # Convertir l'objet image en pixmap
             pixmap = QtGui.QPixmap(image.width, image.height)
+            painter = QtGui.QPainter(pixmap)
             for x in range(image.width):
                 for y in range(image.height):
                     pixel = image[x, y]
-                    pixmap.setPixelColor(x, y, QtGui.QColor(pixel.red, pixel.green, pixel.blue))
+                    color = QtGui.QColor(pixel.red, pixel.green, pixel.blue)
+                    painter.setPen(color)
+                    painter.drawPoint(x, y)
+            painter.end()
 
             # Créer un label pour afficher l'image
             label = QtWidgets.QLabel()
@@ -65,13 +70,20 @@ class MainWindow(QtWidgets.QMainWindow):
             self.main_layout.addWidget(scroll_area)
 
             # Redimensionner la fenêtre
-            self.resize(image.width(), image.height())
+            self.resize(image.width, image.height)
+
+              # Mettre à jour self.image
+            self.image = image
 
             # Activer le bouton de sauvegarde
             self.save_image_button.setEnabled(True)
 
-
     def save_image(self):
+        # Vérifier si self.image est défini
+        if not hasattr(self, 'image') or self.image is None:
+            QtWidgets.QMessageBox.critical(self, "Error", "No image loaded")
+            return
+
         # Demander à l'utilisateur la version du format ULBMP
         version, ok = QtWidgets.QInputDialog.getInt(self, "Save Image", "Enter ULBMP version (1 or 2):", 1, 1, 2)
         if ok:

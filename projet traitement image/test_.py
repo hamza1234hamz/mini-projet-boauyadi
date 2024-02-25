@@ -130,19 +130,13 @@ def test_decode_squares_ulbmp1():
     with pytest.raises(ValueError):
         _bytes_as_img(SQUARES_ULBMP1_CONTENT)
     
-    """
-    def test_load_from_corrupt():
+
+def test_load_from_corrupt():
     bad_content = b'ULBPM\x01\x08\x00'
     with pytest.raises(Exception):
         _bytes_as_img(bad_content)
         
-    """
 
-        
-def test_load_from_corrupt():
-    bad_content = b'ULBPM\x01\x08\x00'
-    with pytest.raises(Exception):
-        Decoder.load_from(bad_content)
 
 def test_load_from_incomplete():
     incomplete_content = b'ULBMP\x01\x0c\x00\x02\x00\x02\x00\x00\x00\x00'
@@ -155,7 +149,7 @@ def test_load_from_incomplete():
 
 
 #################### PHASE 3 ####################
-"""
+'''
 def test_encode_line_100_blacks():
     from pixel import Pixel
     from image import Image
@@ -194,9 +188,9 @@ def test_encode_squares_ulbmp2():
 
 
 
-""" 
+
 #################### PHASE 4 ####################
-'''
+
 def test_load_palette():
     from pixel import Pixel
     content = bytes.fromhex('554c424d50031700030001000200ff000000ff000000ff84')
@@ -265,6 +259,5 @@ def test_load_ulbmp4_blocs():
     assert img[1,0] == Pixel(41, 46, 41)
     assert img[1,0] == img[0,1]
     assert img[1,1] == Pixel(13, 26, 28)
-
 
 '''
