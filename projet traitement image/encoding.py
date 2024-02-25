@@ -24,6 +24,7 @@ class Encoder:
     
     def _save_ulbmp_v1(self, path: str):
         header = b'ULBMP\x01\x0c\x00' + self._img.width.to_bytes(2, 'little') + self._img.height.to_bytes(2, 'little')
+        print("header ",header)
         with open(path, 'wb') as f:
             f.write(header)
             for pixel in self._img.pixels:
@@ -56,23 +57,31 @@ class Encoder:
     @classmethod
     def create_from_pixels(cls, pixels: List[Pixel], ulbmp_version: int = 1) -> 'Encoder':
         width = height = int(len(pixels) ** 0.5)
+        print("width ", width)
+        print("height  ",height)
         img = Image(width, height, pixels)
         return cls(img, ulbmp_version)
 
-# encoding.py
+
 class Decoder:
     @staticmethod
     def load_from(path: str) -> Image:
         with open(path, 'rb') as f:
-            header = f.read(12)
+            header = f.read(12) 
+            print("Header:", header)
             width = int.from_bytes(header[6:8], 'little')
             height = int.from_bytes(header[8:10], 'little')
+            print("Width:", width)
+            print("Height:", height)
             pixels = []
             for _ in range(width * height):
                 try:
                     red, green, blue = f.read(3)
                     pixels.append(Pixel(red, green, blue))
-                except ValueError:
-                    raise ValueError("Invalid pixel data")
+                except ValueError as e:
+                    print("Error while reading pixel data:", e)
+                    break  # Stop reading when there are not enough bytes left
+        print("Number of pixels read:", len(pixels))
+        print("Expected number of pixels:", width * height)
         return Image(width, height, pixels)
 

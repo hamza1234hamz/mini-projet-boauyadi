@@ -39,6 +39,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             try:
                 # Charger l'image à partir du fichier ULBMP
+                print("window load image try")
                 image = Decoder.load_from(filename)
             except Exception as e:
                 QtWidgets.QMessageBox.critical(self, "Error", str(e))
@@ -65,11 +66,18 @@ class MainWindow(QtWidgets.QMainWindow):
             # Redimensionner la fenêtre
             self.resize(image.width(), image.height())
 
+              # Mettre à jour self.image
+            self.image = image
+
             # Activer le bouton de sauvegarde
             self.save_image_button.setEnabled(True)
 
-
     def save_image(self):
+        # Vérifier si self.image est défini
+        if not hasattr(self, 'image') or self.image is None:
+            QtWidgets.QMessageBox.critical(self, "Error", "No image loaded")
+            return
+
         # Demander à l'utilisateur la version du format ULBMP
         version, ok = QtWidgets.QInputDialog.getInt(self, "Save Image", "Enter ULBMP version (1 or 2):", 1, 1, 2)
         if ok:

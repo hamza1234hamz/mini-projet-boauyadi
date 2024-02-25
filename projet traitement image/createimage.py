@@ -8,8 +8,10 @@ def create_ulbmp(filename: str):
         Pixel(255, 255, 255), Pixel(0, 0, 0), Pixel(255, 255, 255), Pixel(0, 0, 0),
         Pixel(0, 0, 0), Pixel(255, 255, 255), Pixel(0, 0, 0), Pixel(255, 255, 255),
         Pixel(255, 255, 255), Pixel(0, 0, 0), Pixel(255, 255, 255), Pixel(0, 0, 0),
-        Pixel(0, 0, 0), Pixel(255, 255, 255), Pixel(0, 0, 0), Pixel(255, 255, 255)
+        Pixel(0, 0, 0), Pixel(255, 255, 255), Pixel(0, 0, 0), Pixel(255, 255, 255),
+        # Ajouter les pixels restants pour atteindre 48 pixels
     ]
+    
     
     # Création de l'encodeur ULBMP
     encoder = Encoder.create_from_pixels(pixels)
@@ -18,4 +20,7 @@ def create_ulbmp(filename: str):
     encoder.save_to(filename)
 
 if __name__ == "__main__":
-    create_ulbmp("test_image.png")
+    create_ulbmp("test_image.ulbmp")
+
+#b'ULBMP\x01\x0c\x00\x04\x00\x04\x00'
+#b'ULBMP\x01\x0c\x00\x04\x00\x04\x00'
