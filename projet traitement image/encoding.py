@@ -31,7 +31,7 @@ class Encoder:
                     f.write(bytes([rgb.red, rgb.green, rgb.blue]))
                
 
-    '''def _save_ulbmp_v2(self, path: str):
+    def _save_ulbmp_v2(self, path: str):
         header = b'ULBMP\x02' + \
                  len(b'ULBMP\x02\x00\x00\x00\x00\x00\x00').to_bytes(2, 'little') + \
                  self._img.width.to_bytes(2, 'little') + self._img.height.to_bytes(2, 'little')
@@ -49,7 +49,7 @@ class Encoder:
                         current_pixel = pixel
                         count = 1
             f.write(bytes([count]) + bytes(current_pixel))
-'''
+
 
 
     @staticmethod

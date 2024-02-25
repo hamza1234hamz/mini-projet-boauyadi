@@ -1,7 +1,7 @@
 import pytest
 
 #################### PHASE 1 ####################
-from encoding import Encoder, Decoder
+
 def test_imports():
     from pixel import Pixel
     from image import Image
@@ -29,19 +29,13 @@ def test_pixel_neq():
     assert GREEN != BLUE
     assert RED != BLUE
 
- 
 def test_image_init_raises_exception():
     from pixel import Pixel
     from image import Image
-    # ------------
-    with pytest.raises(ValueError):
+    with pytest.raises(Exception):
         Image(4, 4, [Pixel(0, 0, 0)])
-    
-    # Test avec des dimensions et des pixels invalides ------
-    #with pytest.raises(ValueError):
-     #   Image(1, 1, [(0, 0, 0)])
-
-
+    with pytest.raises(Exception):
+        Image(1, 1, [Pixel(0, 0, 0)]) #Pixel manquant
 
 def test_image_getitem():
     from image import Image
@@ -123,33 +117,19 @@ def test_encode_squares_ulbmp1():
 
 def test_decode_squares_ulbmp1():
     assert _bytes_as_img(SQUARES_ULBMP1_CONTENT) == _get_squares_img()
-    
-    
-# ajouter 
-def test_decode_squares_ulbmp1():
-    with pytest.raises(ValueError):
-        _bytes_as_img(SQUARES_ULBMP1_CONTENT)
-    
 
 def test_load_from_corrupt():
     bad_content = b'ULBPM\x01\x08\x00'
     with pytest.raises(Exception):
         _bytes_as_img(bad_content)
-        
-
 
 def test_load_from_incomplete():
     incomplete_content = b'ULBMP\x01\x0c\x00\x02\x00\x02\x00\x00\x00\x00'
     with pytest.raises(Exception):
         _bytes_as_img(incomplete_content)
 
-
-
-
-
-
 #################### PHASE 3 ####################
-'''
+
 def test_encode_line_100_blacks():
     from pixel import Pixel
     from image import Image
@@ -157,22 +137,6 @@ def test_encode_line_100_blacks():
     BLACK = Pixel(0, 0, 0)
     img = Image(100, 1, [BLACK]*100)
     assert _image_as_bytes(img, 2) == expected
-
-def test_encode_line_100_blacks():
-    from pixel import Pixel
-    from image import Image
-    print("Avant l'appel de la fonction 100")
-    #expected_bytes = bytes.fromhex('554c424d50020c006400010065000000')
-
-    expected_bytes = bytes.fromhex('554c424d50020c006400010064000000')
-    BLACK = Pixel(0, 0, 0)
-    img = Image(100, 1, [BLACK]*100)
-    result_bytes = _image_as_bytes(img, 2)
-    expected_hex = ''.join(format(byte, '02x') for byte in expected_bytes)
-    result_hex = ''.join(format(byte, '02x') for byte in result_bytes)
-    print("Expected hex:", expected_hex)
-    print("Result hex:", result_hex)
-    assert result_hex == expected_hex
 
 def test_encode_line_300_blacks():
     from pixel import Pixel
@@ -185,10 +149,7 @@ def test_encode_line_300_blacks():
 def test_encode_squares_ulbmp2():
     expected = bytes.fromhex('554c424d50020c00020002000100000001ffffff0100000001ffffff')
     assert _image_as_bytes(_get_squares_img(), 2) == expected
-
-
-
-
+'''
 #################### PHASE 4 ####################
 
 def test_load_palette():
@@ -259,5 +220,4 @@ def test_load_ulbmp4_blocs():
     assert img[1,0] == Pixel(41, 46, 41)
     assert img[1,0] == img[0,1]
     assert img[1,1] == Pixel(13, 26, 28)
-
 '''

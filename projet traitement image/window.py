@@ -17,7 +17,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.main_layout = QtWidgets.QVBoxLayout()
         self.main_layout.addWidget(self.load_image_button)
         self.main_layout.addWidget(self.save_image_button)
-        self.main_layout.addWidget(self.canvas)
 
         # Définition de la fenêtre principale
         self.central_widget = QtWidgets.QWidget()
@@ -28,11 +27,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.load_image_button.clicked.connect(self.load_image)
         self.save_image_button.clicked.connect(self.save_image)
 
+        # Ajouter du style à la fenêtre
+        self.setStyleSheet("background-color: black;")
+
+        # Ajuster la taille de la fenêtre
+        self.resize(800, 600)
+
     def load_image(self):
         # Ouvrir une boîte de dialogue de sélection de fichier
-       # filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Select Image", "", "ULBMP Files (*.ulbmp)")
         filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Select Image", "", "All Files (*)")
-        #filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Select Image", "", "Images (*.png *.xpm *.jpg *.bmp *.ulbmp)")
         if filename:
             # Vérifier si le fichier est au format ULBMP
             if not Encoder.is_ulbmp(filename):
@@ -41,7 +44,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
             try:
                 # Charger l'image à partir du fichier ULBMP
-                print("window load image try")
                 image = Decoder.load_from(filename)
             except Exception as e:
                 QtWidgets.QMessageBox.critical(self, "Error", str(e))
@@ -62,17 +64,13 @@ class MainWindow(QtWidgets.QMainWindow):
             label = QtWidgets.QLabel()
             label.setPixmap(pixmap)
 
-            # Créer un widget de défilement pour afficher l'image
-            scroll_area = QtWidgets.QScrollArea()
-            scroll_area.setWidget(label)
-
-            # Ajouter le widget de défilement à la mise en page principale
-            self.main_layout.addWidget(scroll_area)
+            # Ajouter le label à la mise en page principale
+            self.main_layout.addWidget(label)
 
             # Redimensionner la fenêtre
             self.resize(image.width, image.height)
 
-              # Mettre à jour self.image
+            # Mettre à jour self.image
             self.image = image
 
             # Activer le bouton de sauvegarde
@@ -93,23 +91,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 # Enregistrer l'image avec la version spécifiée du format ULBMP
                 encoder = Encoder(self.image, version)
                 encoder.save_to(filename)
-'''
-    def load_image(self):
-        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open Image", "", "Images (*.ulbmp)")
-        if fileName:
-            image = Decoder.load_from(fileName)
-            # Convert the Image object to a QPixmap
-            self.pixmap = self.image_to_pixmap(image)
-            self.imageLabel.setPixmap(self.pixmap)
 
-    def save_image(self):
-        #fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Image", "", "Images (*.png *.xpm *.jpg *.bmp *.ulbmp)")
-        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Select Image", "", "All Files (*)")
-        if fileName:
-            # Convert the QPixmap to an Image object
-            image = self.pixmap_to_image(self.pixmap)
-            Encoder(image, self.ulbmp_version).save_to(fileName)
-'''
+
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
     window = MainWindow()

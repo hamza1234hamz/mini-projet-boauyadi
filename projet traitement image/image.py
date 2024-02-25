@@ -3,8 +3,8 @@ from pixel import Pixel
 
 class Image:
     def __init__(self, width: int, height: int, pixels: list[Pixel]):
-        '''if width * height != len(pixels):
-            raise ValueError("Le nombre de pixels ne correspond pas aux dimensions de l'image.")'''
+        if width  != len(pixels):
+            raise ValueError("Le nombre de pixels ne correspond pas aux dimensions de l'image.")
         if width <= 0 or height <= 0:
             raise ValueError("Width and height must be positive integers")
         
@@ -15,7 +15,7 @@ class Image:
 
     def __getitem__(self, pos: tuple[int,int]) -> Pixel:
         x, y = pos
-        if not (0 <= x < self.width and 0 <= y < self.height):
+        if not (0 <= x <= self.width and 0 <= y <= self.height):
             raise IndexError("Position de pixel invalide.")
         return self.pixels[y * self.width + x]
 
