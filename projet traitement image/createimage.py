@@ -5,10 +5,10 @@ def create_ulbmp(filename: str):
     
     # Create pixels for the image with a simple pattern
     pixels = [
-        Pixel(255, 0, 0), Pixel(0, 255, 0), Pixel(0, 0, 255), Pixel(255, 255, 255),
-        Pixel(0, 0, 0), Pixel(255, 255, 255), Pixel(255, 255, 255), Pixel(0, 0, 0),
-        Pixel(255, 255, 255), Pixel(255, 255, 255), Pixel(255, 255, 255), Pixel(255, 255, 255),
-        Pixel(255, 255, 255), Pixel(255, 255, 255), Pixel(255, 255, 255), Pixel(255, 255, 255)
+        [Pixel(255, 0, 0), Pixel(0, 255, 0), Pixel(0, 0, 255), Pixel(255, 255, 255)],
+        [Pixel(255, 0, 0), Pixel(0, 255, 0), Pixel(0, 0, 255), Pixel(255, 255, 255)],
+        [Pixel(255, 0, 0), Pixel(0, 255, 0), Pixel(0, 0, 255), Pixel(255, 255, 255)],
+        [Pixel(255, 0, 0), Pixel(0, 255, 0), Pixel(0, 0, 255), Pixel(255, 255, 255)],
     ]
      # Print the generated pixels
     for i, pixel in enumerate(pixels):
