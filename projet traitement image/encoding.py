@@ -26,12 +26,13 @@ class Encoder:
         print("header ",header)
         with open(path, 'wb') as f:
             f.write(header)
-            for pixel in self._img.pixels:
-                for rgb in pixel:
-                    f.write(bytes([rgb.red, rgb.green, rgb.blue]))
+            #print(self._img.pixels)
+            for row in self._img.pixels : 
+                for pixel in row:
+                    f.write(bytes([pixel._red, pixel._green, pixel._blue]))
                
 
-    def _save_ulbmp_v2(self, path: str):
+    '''def _save_ulbmp_v2(self, path: str):
         header = b'ULBMP\x02' + \
                  len(b'ULBMP\x02\x00\x00\x00\x00\x00\x00').to_bytes(2, 'little') + \
                  self._img.width.to_bytes(2, 'little') + self._img.height.to_bytes(2, 'little')
@@ -50,7 +51,7 @@ class Encoder:
                         count = 1
             f.write(bytes([count]) + bytes(current_pixel))
 
-
+'''
 
     @staticmethod
     def is_ulbmp(filename: str) -> bool:
@@ -60,9 +61,9 @@ class Encoder:
     
     @classmethod
     def create_from_pixels(cls, pixels: List[Pixel], ulbmp_version: int = 1) -> 'Encoder':
-        #width = height = int(len(pixels) ** 0.5)
-        width = len(pixels)
-        height = len(pixels[0])
+        width = height = int(len(pixels) ** 0.5)
+        #width = len(pixels)
+        #height = len(pixels[0])
         print("width ", width)
         print("height  ",height)
         img = Image(width, height, pixels)

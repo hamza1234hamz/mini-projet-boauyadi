@@ -80,8 +80,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Vérifier si self.image est défini
         if not hasattr(self, 'image') or self.image is None:
             QtWidgets.QMessageBox.critical(self, "Error", "No image loaded")
-            return
-
+            
         # Demander à l'utilisateur la version du format ULBMP
         version, ok = QtWidgets.QInputDialog.getInt(self, "Save Image", "Enter ULBMP version (1 or 2):", 1, 1, 2)
         if ok:

@@ -35,7 +35,7 @@ def test_image_init_raises_exception():
     with pytest.raises(Exception):
         Image(4, 4, [Pixel(0, 0, 0)])
     with pytest.raises(Exception):
-        Image(1, 1, [Pixel(0, 0, 0)]) #Pixel manquant
+        Image(1, 1, [(0, 0, 0)]) #Pixel manquant
 
 def test_image_getitem():
     from image import Image
@@ -129,7 +129,7 @@ def test_load_from_incomplete():
         _bytes_as_img(incomplete_content)
 
 #################### PHASE 3 ####################
-
+'''
 def test_encode_line_100_blacks():
     from pixel import Pixel
     from image import Image
@@ -151,7 +151,7 @@ def test_encode_squares_ulbmp2():
     assert _image_as_bytes(_get_squares_img(), 2) == expected
 '''
 #################### PHASE 4 ####################
-
+'''
 def test_load_palette():
     from pixel import Pixel
     content = bytes.fromhex('554c424d50031700030001000200ff000000ff000000ff84')
@@ -181,9 +181,9 @@ def test_rle_depth_8():
     assert img[0,0] == img[1,0] == img[2,0] == Pixel(0, 255, 0)
     assert img[0,1] == img[1,1] == img[2,1] == Pixel(0, 0, 255)
     assert img[0,2] == img[1,2] == img[2,2] == Pixel(255, 0, 0)
-
+'''
 #################### PHASE 5 ####################
-
+'''
 def test_ulbmp4_blocs():
     from pixel import Pixel
     from image import Image

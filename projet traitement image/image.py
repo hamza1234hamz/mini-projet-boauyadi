@@ -3,7 +3,7 @@ from pixel import Pixel
 
 class Image:
     def __init__(self, width: int, height: int, pixels: list[Pixel]):
-        if width  != len(pixels):
+        if len(pixels) != width * height:
             raise ValueError("Le nombre de pixels ne correspond pas aux dimensions de l'image.")
         if width <= 0 or height <= 0:
             raise ValueError("Width and height must be positive integers")
