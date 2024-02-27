@@ -47,6 +47,7 @@ class Encoder:
                     if pixel == current_pixel and count < 255:
                         count += 1
                     else:
+                        
                         f.write(bytes([count]) + bytes(current_pixel))
                         current_pixel = pixel
                         count = 1
