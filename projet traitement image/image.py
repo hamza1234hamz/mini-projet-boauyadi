@@ -7,6 +7,8 @@ class Image:
             raise ValueError("Le nombre de pixels ne correspond pas aux dimensions de l'image.")
         if width <= 0 or height <= 0:
             raise ValueError("Width and height must be positive integers")
+        if not all(isinstance(pixel, Pixel) for pixel in pixels):
+            raise TypeError("All elements in pixels must be Pixel objects")
         
         self.width = width
         self.height = height

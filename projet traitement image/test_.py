@@ -129,7 +129,7 @@ def test_load_from_incomplete():
         _bytes_as_img(incomplete_content)
 
 #################### PHASE 3 ####################
-'''
+
 def test_encode_line_100_blacks():
     from pixel import Pixel
     from image import Image
@@ -149,7 +149,7 @@ def test_encode_line_300_blacks():
 def test_encode_squares_ulbmp2():
     expected = bytes.fromhex('554c424d50020c00020002000100000001ffffff0100000001ffffff')
     assert _image_as_bytes(_get_squares_img(), 2) == expected
-'''
+
 #################### PHASE 4 ####################
 '''
 def test_load_palette():

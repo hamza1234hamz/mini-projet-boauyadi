@@ -28,18 +28,19 @@ class Encoder:
             f.write(header)
             #print(self._img.pixels)
             for row in self._img.pixels : 
-                for pixel in row:
-                    f.write(bytes([pixel._red, pixel._green, pixel._blue]))
+                f.write(bytes(row))
+                #for pixel in row:
+                    #f.write(bytes([pixel._red, pixel._green, pixel._blue]))
                
 
-    '''def _save_ulbmp_v2(self, path: str):
+    def _save_ulbmp_v2(self, path: str):
         header = b'ULBMP\x02' + \
-                 len(b'ULBMP\x02\x00\x00\x00\x00\x00\x00').to_bytes(2, 'little') + \
-                 self._img.width.to_bytes(2, 'little') + self._img.height.to_bytes(2, 'little')
+                len(b'ULBMP\x02\x00\x00\x00\x00\x00\x00').to_bytes(2, 'little') + \
+                self._img.width.to_bytes(2, 'little') + self._img.height.to_bytes(2, 'little')
         with open(path, 'wb') as f:
             f.write(header)
             current_pixel = self._img[0, 0]
-            count = 1
+            count = 0
             for y in range(self._img.height):
                 for x in range(self._img.width):
                     pixel = self._img[x, y]
@@ -50,8 +51,8 @@ class Encoder:
                         current_pixel = pixel
                         count = 1
             f.write(bytes([count]) + bytes(current_pixel))
+        print("header ",header)
 
-'''
 
     @staticmethod
     def is_ulbmp(filename: str) -> bool:
@@ -75,22 +76,41 @@ class Decoder:
     def load_from(path: str) -> Image:
         with open(path, 'rb') as f:
             header = f.read(12) 
-            print("Header:", header)
-            width = int.from_bytes(header[8:10], 'little')
-            height = int.from_bytes(header[10:], 'little')   # b'ULBMP\x01\x0c\x00\x04\x00\x04\x00'
-            print("Width:", width)
-            print("Height:", height)
-            pixels = []
-            for _ in range(width * height):
-                try:
-                    red, green, blue = f.read(3)
-                    pixels.append(Pixel(red, green, blue))
-                except ValueError as e:
-                    print("Error while reading pixel data:", e)
-                    break  # Stop reading when there are not enough bytes left
-        print("Number of pixels read:", len(pixels))
-        print("Expected number of pixels:", width * height)
-        return Image(width, height, pixels)
+            if header[:6] != b'ULBMP\x01' and header[:6] != b'ULBMP\x02':
+                raise ValueError("Invalid ULBMP header")
+            elif header[:6] == b'ULBMP\x01':
+                print("Header:", header)
+                width = int.from_bytes(header[8:10], 'little')
+                height = int.from_bytes(header[10:], 'little')   # b'ULBMP\x01\x0c\x00\x04\x00\x04\x00'
+                print("Width:", width)
+                print("Height:", height)
+                pixels = []
+                for _ in range(width * height):
+                    try:
+                        red, green, blue = f.read(3)
+                        pixels.append(Pixel(red, green, blue))
+                    except ValueError as e:
+                        print("Error while reading pixel data:", e)
+                        break  # Stop reading when there are not enough bytes left
+                print("Number of pixels read:", len(pixels))
+                print("Expected number of pixels:", width * height)
+                return Image(width, height, pixels)
+            elif header[:6] == b'ULBMP\x02':
+                print("Header:", header)
+                width = int.from_bytes(header[8:10], 'little')
+                height = int.from_bytes(header[10:], 'little')
+                print("Width:", width)
+                print("Height:", height)
+                pixels = []
+                current_pixel = Pixel(*f.read(3))
+                while len(pixels) < width * height:
+                    count = int.from_bytes(f.read(1), 'little')
+                    pixels.extend([current_pixel] * count)
+                    current_pixel = Pixel(*f.read(3))
+                print("Number of pixels read:", len(pixels))
+                print("Expected number of pixels:", width * height)
+                return Image(width, height, pixels) 
+ 
 
 
 
