@@ -3,18 +3,20 @@ from pixel import Pixel
 
 def create_ulbmp(filename: str):
     
-    # Create pixels for the image with a simple pattern
-    pixels = [
-        Pixel(255, 0, 0), Pixel(0, 255, 0), Pixel(0, 0, 255), Pixel(255, 255, 255),
-        Pixel(0, 0, 0), Pixel(255, 255, 255), Pixel(255, 255, 255), Pixel(0, 0, 0),
-        Pixel(255, 255, 255), Pixel(255, 255, 255), Pixel(255, 255, 255), Pixel(255, 255, 255),
-        Pixel(255, 255, 255), Pixel(255, 255, 255), Pixel(255, 255, 255), Pixel(255, 255, 255)
-    ]
-     # Print the generated pixels
-    for i, pixel in enumerate(pixels):
-        print(f"Pixel {i}: {pixel}")
+    # Create pixels for the image with a simple pattern (4x4 pixels)
+    pixels = []
+    for i in range(640):
+            row = []
+            for j in range(480):
+                if (i // 60) % 2 == (j // 80) % 2:
+                    row.append(Pixel(0, 0, 0))  # Black pixel
+                else:
+                    row.append(Pixel(255, 255, 255))  # White pixel
+            pixels.append(row)
+
+    print(len(pixels))
     
-    # Create the ULBMP encoder
+    # Création de l'encodeur ULBMP
     encoder = Encoder.create_from_pixels(pixels)
     
     # Save the ULBMP image
@@ -22,14 +24,3 @@ def create_ulbmp(filename: str):
 
 if __name__ == "__main__":
     create_ulbmp("test_image.ulbmp")
-
-
-    ''' # Generate ULBMP image data
-    ulbmp_header = b'\x55\x4c\x42\x4d\x50\x01\x0c\x00\x02\x00\x02\x00'
-    pixel_data = b'\x00\x00\x00\x00\xff\xff\xff\xff\x00\x00\x00\xff\xff\xff'
-
-    # Write data to a file
-    with open("example.ulbmp", "wb") as file:
-        file.write(ulbmp_header)
-        file.write(pixel_data)
-'''
