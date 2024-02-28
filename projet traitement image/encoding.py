@@ -2,25 +2,22 @@
 from image import Image
 from pixel import Pixel
 from typing import List
-from typing import Optional
+
+from collections import defaultdict
+from typing import Tuple
+
 
 
 # encoding.py
 class Encoder:
     ### updated for ulpmb v3
-    def __init__(self, image: Image, version: int=1, **kwargs):
-        if version not in (1, 2, 3):
-            raise ValueError("ULBMP version must be either 1, 2, or 3")
-        self._img = image
-        self._ulbmp_version = version
-        self._depth = kwargs.get('depth', None)
-        self._rle = kwargs.get('rle', False)
-        self._palette = kwargs.get('palette', None)
-        self._palette = kwargs.get('palette', None)  
-    
-        if version == 3 and (self._depth is None or self._rle is None):
-            raise ValueError("Both depth and rle must be specified for ULBMP version 3 encoding")
-        
+    def __init__(self, img: Image, ulbmp_version: int = 1, **kwargs):
+        if ulbmp_version not in (1, 2, 3):
+            raise ValueError("ULBMP version must be either 1, 2 or 3")
+        self._img = img
+        self._ulbmp_version = ulbmp_version
+        self._depth = kwargs.get("depth", 1)
+        self._rle = kwargs.get("rle", False)
 
         
     ### updated for ulpmb v3
@@ -71,85 +68,140 @@ class Encoder:
 
     ### aded for ulpmb v3
     def _save_ulbmp_v3(self, path: str):
+        header_length = 14
         header = b'ULBMP\x03' + \
-                 len(b'ULBMP\x03\x00\x00\x00\x00\x00\x00\x00').to_bytes(2, 'little') + \
-                 self._img.width.to_bytes(2, 'little') + self._img.height.to_bytes(2, 'little') + \
-                 self._depth.to_bytes(1, 'little') + int(self._rle).to_bytes(1, 'little')
+                header_length.to_bytes(2, 'little') + \
+                self._img.width.to_bytes(2, 'little') + self._img.height.to_bytes(2, 'little') + \
+                self._depth.to_bytes(1, 'little') + \
+                (b'\x01' if self._rle else b'\x00') + \
+                self._get_palette_bytes()
+
         with open(path, 'wb') as f:
             f.write(header)
-            f.write(self._encode_pixels())
-            
-            
-    ### aded for ulpmb v3
-    def _encode_pixels(self) -> bytes:
-        encoded_data = bytearray()
-    # Loop through each pixel in the image
-        for y in range(self._img.height):
-            for x in range(self._img.width):
-                pixel = self._img[x, y]
-                # Encode pixel color components based on depth
-                if self._depth == 1:  # 1 bit per color component
-                    encoded_data.append((pixel.red << 2) | (pixel.green << 1) | pixel.blue)
-                elif self._depth == 2:  # 2 bits per color component
-                    encoded_data.append((pixel.red << 4) | (pixel.green << 2) | pixel.blue)
-                elif self._depth == 4:  # 4 bits per color component
-                    encoded_data.append((pixel.red << 4) | pixel.green)
-                    encoded_data.append((pixel.blue << 4) | pixel.alpha)  # Assuming alpha channel for 4-bit depth
-                else:
-                    raise ValueError("Unsupported depth for encoding")
+            f.write(Encoder.encode_pixels(self._img, self._depth, self._palette))
 
-        if self._rle:
-            # Apply Run-Length Encoding if enabled
-            encoded_data = self._apply_rle(encoded_data)
 
-        return bytes(encoded_data)
+    def get_unique_colors(image):
+        # Initialize a dictionary to store the count of each color
+        color_counts = defaultdict(int)
+
+        # Iterate through each pixel in the image
+        width, height = image.size
+        for x in range(width):
+            for y in range(height):
+                # Get the RGB value of the pixel
+                pixel = image.getpixel((x, y))
+                # Increment the count for this color
+                color_counts[pixel] += 1
+
+        # Extract unique colors from the dictionary keys
+        unique_colors = list(color_counts.keys())
+        
+        return unique_colors
+
+    def _get_palette_bytes(self) -> bytes:
+        if self._depth == 24:
+            # Profondeur de couleur 24 bits par pixel
+            return b''
+        elif self._depth in [1, 2, 4, 8]:
+            # Profondeur de couleur inférieure à 24 bits par pixel
+            palette_size = 2 ** self._depth
+            # Liste des couleurs uniques dans l'image
+            unique_colors = self.get_unique_colors(self._img)
+            # Vérifier que le nombre de couleurs uniques ne dépasse pas la taille de la palette
+            if len(unique_colors) > palette_size:
+                raise ValueError("Nombre de couleurs uniques dépasse la taille de la palette")
+            
+            # Créer la palette en associant chaque couleur à un encodage spécifique
+            palette = b''
+            for color in unique_colors:
+                # Ajouter la couleur RVB à la palette
+                palette += bytes(color)  # Supposons que la couleur est une liste [red, green, blue]
+
+            return palette
+        else:
+            raise ValueError("Profondeur de couleur non prise en charge")
+
     
-    ### added for ulpmb v3
-    def _apply_rle(self, data: bytearray) -> bytearray:
-        compressed_data = bytearray()
-        count = 1
-        for i in range(1, len(data)):
-            if data[i] == data[i - 1]:
-                count += 1
+
+                    
+
+## mn hna 18:43   ###########################################################################################################################
+    def encode_rle(image: Image, palette: List[Tuple[int, int, int]]) -> bytes:
+        encoded_pixels = []
+
+        current_pixel = None
+        run_length = 0
+
+        for pixel in image:
+            if pixel == current_pixel:
+                run_length += 1
+                if run_length == 256:
+                    encoded_pixels.extend([255, current_pixel[0], current_pixel[1], current_pixel[2]])
+                    run_length = 0
             else:
-                compressed_data.append(count)
-                compressed_data.append(data[i - 1])
-                count = 1
-        compressed_data.append(count)
-        compressed_data.append(data[-1])
-        return compressed_data
+                if run_length > 0:
+                    encoded_pixels.extend([run_length - 1, current_pixel[0], current_pixel[1], current_pixel[2]])
+                current_pixel = pixel
+                run_length = 1
+
+        if run_length > 0:
+            encoded_pixels.extend([run_length - 1, current_pixel[0], current_pixel[1], current_pixel[2]])
+
+        return bytes(encoded_pixels)
 
 
-    @classmethod
-    def from_bytes(cls, data: bytes) :
-        if data[:6] != b'ULBMP\x01' and data[:6] != b'ULBMP\x02' and data[:6] != b'ULBMP\x03':
-            raise ValueError("Invalid ULBMP header")
-        
-        version = int(data[5])
-        width = int.from_bytes(data[8:10], 'little')
-        height = int.from_bytes(data[10:12], 'little')
-        depth = int(data[12])
-        rle = bool(data[13])
+    def encode_non_rle(image: Image, depth: int, palette: List[Tuple[int, int, int]]) -> bytes:
+        encoded_pixels = []
+        bits_per_pixel = 8 // depth
 
-        palette_data = None
-        if version == 3:
-            palette_length = int.from_bytes(data[14:16], 'little')
-            palette_data = data[16:16 + palette_length]
+        current_byte = 0
+        current_bit_index = 0
 
-        return cls(version, width, height, depth, rle, palette_data)
+        for pixel in image:
+            color_index = palette.index(pixel)
+            current_byte = (current_byte << bits_per_pixel) | color_index
+            current_bit_index += bits_per_pixel
 
-    def has_palette(self) -> bool:
-        return self.palette_data is not None
+            if current_bit_index >= 8:
+                encoded_pixels.append(current_byte)
+                current_byte = 0
+                current_bit_index = 0
 
-    def get_palette(self) -> List[Pixel]:
-        if self.palette_data is None:
-            raise ValueError("No palette data available")
-        
-        palette = []
-        for i in range(0, len(self.palette_data), 3):
-            red, green, blue = self.palette_data[i:i+3]
-            palette.append(Pixel(red, green, blue))
-        return palette
+        if current_bit_index > 0:
+            current_byte = current_byte << (8 - current_bit_index)
+            encoded_pixels.append(current_byte)
+
+        return bytes(encoded_pixels)
+
+    
+    
+    
+    def encode_pixels(image: Image, depth: int, palette: List[Tuple[int, int, int]]) -> bytes:
+        # Vérifier si la profondeur est prise en charge
+        if depth not in [1, 2, 4, 8, 24]:
+            raise ValueError("Profondeur de couleur non prise en charge")
+
+        # Si la profondeur est 24 bits par pixel, utiliser l'encodage RLE
+        if depth == 24:
+            return Encoder.encode_rle(image, palette)
+
+        # Si la profondeur est 8 bits par pixel, utiliser l'encodage RLE
+        if depth == 8:
+            return Encoder.encode_rle(image, palette)
+
+        # Si la profondeur est 1, 2 ou 4 bits par pixel, utiliser l'encodage sans compression
+        return Encoder.encode_non_rle(image, depth, palette)
+
+
+
+                    
+                    
+                    
+                    
+                
+   
+
 
 
     @staticmethod
@@ -169,66 +221,81 @@ class Encoder:
         return cls(img, ulbmp_version)
 
 
+
+
+#####################################################
+
 class Decoder:
+    def __init__(self, path: str):
+        self._path = path
+        self._f = open(path, 'rb')
+        self._header = self._read_header()
+        self._width, self._height, self._depth, self._rle = self._parse_header()
+
+    def _read_header(self) -> bytes:
+        header_length = int.from_bytes(self._f.read(2), 'little')
+        return self._f.read(header_length)
+
+    def _parse_header(self) -> Tuple[int, int, int, bool]:
+        ulbmp_version = self._header[:5]
+        assert ulbmp_version == b'ULBMP\x03', "Invalid ULBMP version"
+        width = int.from_bytes(self._header[5:7], 'little')
+        height = int.from_bytes(self._header[7:9], 'little')
+        depth = int.from_bytes(self._header[9:10], 'little')
+        rle = bool(self._header[10])
+        return width, height, depth, rle
+
+    def _get_palette_bytes(self) -> bytes:
+        if self._depth == 24:
+            return b''
+        elif self._depth in [1, 2, 4, 8]:
+            palette_size = 2 ** self._depth
+            palette_entry_bits = 24 if self._depth != 1 else 1
+            total_palette_bits = palette_size * palette_entry_bits
+            total_palette_bytes = (total_palette_bits + 7) // 8
+            palette_data = self._f.read(total_palette_bytes)
+            return palette_data
+        else:
+            raise ValueError("Profondeur de couleur non prise en charge")
+
+    def decode_pixels_from_file(self) -> List[Pixel]:
+        if self._rle:
+            return self._decode_rle_pixels()
+        else:
+            return self._decode_non_rle_pixels()
+
+    def _decode_rle_pixels(self) -> List[Pixel]:
+            decoded_pixels = []
+            remaining_pixels = self._width * self._height
+            while remaining_pixels > 0:
+                run_length = self._f.read(1)[0]
+                pixel_data = self._f.read(3)
+                pixel = Pixel(*pixel_data)
+                decoded_pixels.extend([pixel] * (run_length + 1))
+                remaining_pixels -= (run_length + 1)
+            return decoded_pixels
+
+    def _decode_non_rle_pixels(self) -> List[Pixel]:
+        decoded_pixels = []
+        bits_per_pixel = 8 // self._depth
+        palette = self._get_palette()
+        for _ in range(self._width * self._height):
+            byte = self._f.read(1)[0]
+            for _ in range(bits_per_pixel):
+                index = (byte >> (8 - bits_per_pixel)) & ((1 << bits_per_pixel) - 1)
+                pixel = palette[index]
+                decoded_pixels.append(pixel)
+                byte <<= bits_per_pixel
+        return decoded_pixels
+
+
+    def decode_image(self) -> Image:
+        pixels = self.decode_pixels_from_file()
+        image = Image.new('RGB', (self._width, self._height))
+        image.putdata(pixels)
+        return image
+
     @staticmethod
     def load_from(path: str) -> Image:
-        with open(path, 'rb') as f:
-            header = f.read(12) 
-            if header[:6] != b'ULBMP\x01' and header[:6] != b'ULBMP\x02':
-                raise ValueError("Invalid ULBMP header")
-            elif header[:6] == b'ULBMP\x01':
-                print("Header:", header)
-                width = int.from_bytes(header[8:10], 'little')
-                height = int.from_bytes(header[10:], 'little')   # b'ULBMP\x01\x0c\x00\x04\x00\x04\x00'
-                print("Width:", width)
-                print("Height:", height)
-                pixels = []
-                for _ in range(width * height):
-                    try:
-                        red, green, blue = f.read(3)
-                        pixels.append(Pixel(red, green, blue))
-                    except ValueError as e:
-                        print("Error while reading pixel data:", e)
-                        break  # Stop reading when there are not enough bytes left
-                print("Number of pixels read:", len(pixels))
-                print("Expected number of pixels:", width * height)
-                return Image(width, height, pixels)
-            elif header[:6] == b'ULBMP\x02':
-                print("Header:", header)
-                width = int.from_bytes(header[8:10], 'little')
-                height = int.from_bytes(header[10:], 'little')
-                print("Width:", width)
-                print("Height:", height)
-                pixels = []
-                current_pixel = Pixel(*f.read(3))
-                while len(pixels) < width * height:
-                    count = int.from_bytes(f.read(1), 'little')
-                    pixels.extend([current_pixel] * count)
-                    current_pixel = Pixel(*f.read(3))
-                print("Number of pixels read:", len(pixels))
-                print("Expected number of pixels:", width * height)
-                return Image(width, height, pixels)
-            
-            elif header[:6] == b'ULBMP\x03':
-                width = int.from_bytes(header[8:10], 'little')
-                height = int.from_bytes(header[10:12], 'little')
-                depth = header[12]
-                rle = header[13] == 0x01
-                # Read palette (not implemented here)
-                # Read pixels and decode them
-                pixels = f.read()
-                image = Decoder._decode_ulbmp_v3(width, height, depth, rle, None, pixels)
-                return image
-            
-    
-    @staticmethod
-    def _decode_ulbmp_v3(width: int, height: int, depth: int, rle: bool, palette_data: Optional[bytes], pixel_data: bytes) -> Image:
-        pass
-                 
-            
-             
- 
-
-
-
-
+        decoder = Decoder(path)
+        return decoder.decode_image()

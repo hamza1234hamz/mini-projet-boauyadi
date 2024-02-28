@@ -1,4 +1,5 @@
 class Pixel:
+####
     def __init__(self, red, green, blue):
         if any(c < 0 for c in (red, green, blue)):
             raise ValueError("Les valeurs de red, green et blue ne peuvent pas être négatives")
@@ -26,3 +27,8 @@ class Pixel:
         if isinstance(other, Pixel):
             return self.red == other.red and self.green == other.green and self.blue == other.blue
         return False
+
+####
+    @blue.setter
+    def blue(self, value):
+        self._blue = value
