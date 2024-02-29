@@ -88,6 +88,7 @@ class MainWindow(QtWidgets.QMainWindow):
             filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Image", "", "ULBMP Files (*.ulbmp)")
             if filename:
                 # Enregistrer l'image avec la version spécifiée du format ULBMP
+                
                 encoder = Encoder(self.image, version)
                 encoder.save_to(filename)
 
