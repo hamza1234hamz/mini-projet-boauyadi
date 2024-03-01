@@ -27,6 +27,9 @@ class Pixel:
         if isinstance(other, Pixel):
             return self.red == other.red and self.green == other.green and self.blue == other.blue
         return False
+    
+    def __hash__(self):
+        return hash((self._red, self._green, self._blue))
 
 ####
     @blue.setter
