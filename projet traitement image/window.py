@@ -7,30 +7,33 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         
-        # Initialisation des widgets
+        # Initialization of widgets
         self.load_image_button = QtWidgets.QPushButton("Load Image")
-        self.canvas = QtWidgets.QGraphicsView()
         self.save_image_button = QtWidgets.QPushButton("Save Image")
         self.save_image_button.setEnabled(False)
 
-        # Mise en page
-        self.main_layout = QtWidgets.QVBoxLayout()
-        self.main_layout.addWidget(self.load_image_button)
-        self.main_layout.addWidget(self.save_image_button)
+        # Layout for buttons
+        self.button_layout = QtWidgets.QHBoxLayout()
+        self.button_layout.addWidget(self.load_image_button)
+        self.button_layout.addWidget(self.save_image_button)
 
-        # Définition de la fenêtre principale
+        # Main layout
+        self.main_layout = QtWidgets.QVBoxLayout()
+        self.main_layout.addLayout(self.button_layout)
+
+        # Definition of the main window
         self.central_widget = QtWidgets.QWidget()
         self.central_widget.setLayout(self.main_layout)
         self.setCentralWidget(self.central_widget)
 
-        # Connexions des signaux et slots
+        # Connections of signals and slots
         self.load_image_button.clicked.connect(self.load_image)
         self.save_image_button.clicked.connect(self.save_image)
 
-        # Ajouter du style à la fenêtre
+        # Add style to the window
         self.setStyleSheet("background-color: black;")
 
-        # Ajuster la taille de la fenêtre
+        # Adjust the size of the window
         self.resize(800, 600)
 
     def load_image(self):

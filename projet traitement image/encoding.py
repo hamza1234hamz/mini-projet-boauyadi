@@ -6,13 +6,10 @@ from typing import List
 from collections import defaultdict
 from typing import Tuple
 
-
-
-# encoding.py
 class Encoder:
     ### updated for ulpmb v3
     def __init__(self, img: Image, ulbmp_version: int = 1, **kwargs):
-        if ulbmp_version not in (1, 2, 3):
+        if ulbmp_version not in (1, 2, 3, 4):
             raise ValueError("ULBMP version must be either 1, 2 or 3")
         self._img = img
         self._ulbmp_version = ulbmp_version
@@ -90,8 +87,6 @@ class Encoder:
                 pixel = self._img[x, y]
                 # Increment the count for this color
                 color_counts[pixel] += 1
-
-        # Extract unique colors from the dictionary keys
         unique_colors = list(color_counts.keys())
         
         return unique_colors
@@ -119,11 +114,7 @@ class Encoder:
         else:
             raise ValueError("Profondeur de couleur non prise en charge")
 
-    
 
-                    
-
-## mn hna 18:43   ###########################################################################################################################
     def encode_rle(image: Image, palette: List[Tuple[int, int, int]]) -> bytes:
         encoded_pixels = []
 
@@ -191,17 +182,6 @@ class Encoder:
         # Si la profondeur est 1, 2 ou 4 bits par pixel, utiliser l'encodage sans compression
         return Encoder.encode_non_rle(self, depth, palette)
 
-
-
-                    
-                    
-                    
-                    
-                
-   
-
-
-
     @staticmethod
     def is_ulbmp(filename: str) -> bool:
         with open(filename, 'rb') as f:
@@ -211,38 +191,25 @@ class Encoder:
     @classmethod
     def create_from_pixels(cls, pixels: List[Pixel], ulbmp_version: int = 1) -> 'Encoder':
         width = height = int(len(pixels) ** 0.5)
-        #width = len(pixels)
-        #height = len(pixels[0])
         print("width ", width)
         print("height  ",height)
         img = Image(width, height, pixels)
         return cls(img, ulbmp_version)
 
-
-
-
-#####################################################
+################### DECODER ##################################
 
 class Decoder:
     def __init__(self, path: str):
         self._path = path
         self._depth = None
         self._f = open(path, 'rb')
-        self._ulbmp_version = self._f.read(6)  #ULBMP\x01
-        #print("header",self._f.read())
+        self._ulbmp_version = self._f.read(6)
+       
         self._header = self._read_header()
         self._width, self._height, self._depth, self._rle = self._parse_header()
 
     def _read_header(self) -> bytes:
-        #new_header = self._f.read()
-        #print("new header ",new_header)
-        #header_length = int.from_bytes(self._f.read(2), 'little')  #x0c\x00
-        #print("header_length ",header_length)
         return self._f.read()
-
-#header = b'ULBMP\x01\x0c\x00\x02\x00\x02\x00\x00\x00\x00\xff\xff\xff\x00\x00\x00\xff\xff\xff'  
-#data = b'\x00\x00\x00\xff\xff\xff\x00\x00\x00\xff\xff\xff'   2x2 pixels = 3x4 bytes = 12 bytes
-
 
     def _parse_header(self) -> Tuple[int, int, int, bool , bytes]:
         ulbmp_version = self._ulbmp_version
@@ -277,41 +244,27 @@ class Decoder:
         else:
             raise ValueError("Invalid ULBMP version")
 
-    def get_unique_colors(self, decode_pixels: bool = True) -> List[Pixel]:
-        color_counts = defaultdict(int)
-        # Read pixel data directly from the file without calling decode_pixels_from_file
-        if decode_pixels:
-            if self._rle:
-                decoded_pixels = self._decode_rle_pixels()
-            else:
-                decoded_pixels = self._decode_non_rle_pixels()
+    def _get_palette_bytes(self, unique_colors: List[Pixel]) -> bytes:
+        if self._depth == 24:
+            return b''  # For 24-bit depth, no palette is needed
 
-            for pixel in decoded_pixels:
-                color_counts[pixel] += 1
-
-        unique_colors = list(color_counts.keys())
-
-        if self._depth in [1, 2, 4, 8]:
-            # If there are more unique colors than the palette size, raise an error
+        elif self._depth in [1, 2, 4, 8]:
             palette_size = 2 ** self._depth
             if len(unique_colors) > palette_size:
-                raise ValueError("Image has more unique colors than the palette can hold")
-            # If there are less unique colors than the palette size, fill the rest with black
-            while len(unique_colors) < palette_size:
-                unique_colors.append(Pixel(0, 0, 0))
+                raise ValueError("Number of unique colors exceeds palette size")
+            palette = b''
+            for color in unique_colors:
+                # Append RGB values of each color to the palette
+                palette += bytes(color)
 
-        return unique_colors
+            # Pad the palette with black if necessary to reach the palette size
+            while len(palette) < 3 * palette_size:
+                palette += b'\x00\x00\x00'
 
-
-    def _get_palette_bytes(self) -> List[Pixel]:
-        if self._depth == 24:
-            return []
-        elif self._depth in [1, 2, 4, 8]:
-            # Get unique colors from the image
-            unique_colors = self.get_unique_colors(decode_pixels=False)
-            return unique_colors
+            return palette
         else:
             raise ValueError("Unsupported color depth")
+
 
     def decode_pixels_from_file(self) -> List[Pixel]:
         if self._rle:
@@ -346,15 +299,20 @@ class Decoder:
                 i+=3
                 j += 3
         else:
-            bits_per_pixel = 8 // self._depth
-            palette = self._get_palette_bytes()
+            bits_pixel = 8 // self._depth
+            palette = self._get_palette_bytes(get_unique_colors(self.decode_pixels_from_file()))
+            print("bits per pixel" , bits_pixel)
+            current_byte = 0
+            current_bit_index = 0
             for _ in range(self._width * self._height):
-                byte = int.from_bytes(self._f.read(1), byteorder='big')  # Convert byte to integer
-                for _ in range(bits_per_pixel):
-                    index = (byte >> (8 - bits_per_pixel)) & ((1 << bits_per_pixel) - 1)
-                    pixel = palette[index]
-                    decoded_pixels.append(pixel)
-                    byte <<= bits_per_pixel
+                if current_bit_index == 0:
+                    current_byte = int.from_bytes(self._f.read(1), byteorder='big')
+                index = (current_byte >> (8 - bits_pixel)) & ((1 << bits_pixel) - 1)
+                current_byte <<= bits_pixel
+                current_bit_index += bits_pixel
+                if current_bit_index >= 8:
+                    current_bit_index = 0
+                decoded_pixels.append(palette[index])
         return decoded_pixels
 
 
@@ -368,3 +326,12 @@ class Decoder:
     def load_from(path: str) -> Image:
         decoder = Decoder(path)
         return decoder.decode_image()
+    
+
+def get_unique_colors(decoded_pixels: List[Pixel]) -> List[Pixel]:
+    color_counts = defaultdict(int)
+    for pixel in decoded_pixels:
+        color_counts[pixel] += 1
+
+    unique_colors = list(color_counts.keys())
+    return unique_colors

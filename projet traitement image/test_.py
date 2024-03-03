@@ -159,7 +159,7 @@ def test_load_palette():
     assert img[0,0] == Pixel(0, 0, 255)
     assert img[1,0] == Pixel(255, 0, 0)
     assert img[2,0] == Pixel(0, 255, 0)
-'''
+
 def test_encode_squares_ulbmp3():
     possibilities = [
         bytes.fromhex('554c424d50031400020002000100000000ffffff50'),
@@ -221,4 +221,3 @@ def test_load_ulbmp4_blocs():
     assert img[1,0] == img[0,1]
     assert img[1,1] == Pixel(13, 26, 28)
 
-'''
